@@ -36,7 +36,11 @@ class MessageAdapter(val context: Context, private val messages: MutableList<Mes
         fun bind(context: Context, message: Message) {
             messageText.text = message.messageText
             messageSender.text = message.senderName
-            tokensCount.text = "Tokens count:"  + message.tokens.toString()
+            if (message.tokens > 0) {
+                tokensCount.text = "Tokens count:"  + message.tokens.toString()
+            } else {
+                tokensCount.text = ""
+            }
 
             if (!message.isSentByMe) {
                 itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.message_background))
@@ -44,11 +48,5 @@ class MessageAdapter(val context: Context, private val messages: MutableList<Mes
                 itemView.setBackgroundColor(ContextCompat.getColor(context, android.R.color.transparent))
             }
         }
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    fun addMessage(message: Message) {
-        messages.add(message)
-        notifyDataSetChanged()
     }
 }
