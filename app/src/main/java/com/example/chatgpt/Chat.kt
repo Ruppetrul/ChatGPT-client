@@ -61,6 +61,7 @@ class Chat : AppCompatActivity() {
             if (message.isNotEmpty()) {
                 chatViewModel!!.messageList.add(Message(message, "You",true, 0))
                 messageAdapter.notifyDataSetChanged()
+                messageRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
                 messageEditText.setText("")
                 sendMessage(message)
             }
@@ -132,6 +133,7 @@ class Chat : AppCompatActivity() {
 
                     chatViewModel.messageList.add(Message(text, "Gpt", false, totalTokens))
                     messageAdapter.notifyDataSetChanged()
+                    messageRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
                 }
             }
         })
