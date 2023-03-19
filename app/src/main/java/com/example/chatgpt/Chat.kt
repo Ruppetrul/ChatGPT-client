@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
@@ -46,8 +47,6 @@ class Chat : AppCompatActivity() {
         // Получаем список сообщений из ViewModel
         messageList = chatViewModel.messageList
 
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
         messageRecyclerView = findViewById(R.id.recycler_view_messages)
         messageEditText = findViewById(R.id.edit_text_chat_input)
         sendButton = findViewById(R.id.button_chat_send)
@@ -68,6 +67,11 @@ class Chat : AppCompatActivity() {
         }
 
         //getModelsFromOpenAiApi()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.chat_menu, menu)
+        return true
     }
 
     private fun sendMessage(message: String) {
@@ -162,7 +166,7 @@ class Chat : AppCompatActivity() {
     // Обрабатываем нажатие на кнопку "Назад" в статус-баре
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            android.R.id.home -> {
+            R.id.action_exit -> {
                 removeTokenFromSharedPreferences(this@Chat)
                 // Здесь происходит переход на другую активность при нажатии на кнопку
                 val intent = Intent(this@Chat, MainActivity::class.java)
