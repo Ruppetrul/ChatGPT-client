@@ -185,41 +185,6 @@ class Chat : AppCompatActivity() {
         }
     }
 
-    fun getAvailableModels() {
-        GlobalScope.launch(Dispatchers.IO) {
-            val client = OkHttpClient()
-
-            val key = getTokenFromSharedPreferences(this@Chat)
-
-            // Формируем запрос к API OpenAI
-            val request = Request.Builder()
-                .url("https://api.openai.com/v1/models")
-                .addHeader("Content-Type", "application/json")
-
-                .addHeader("Authorization", "Bearer $key")
-                .build()
-
-            // Отправляем запрос и получаем ответ
-            val response = client.newCall(request).execute()
-            val responseString = response.body?.string()
-
-            // Обрабатываем ответ
-            if (response.isSuccessful && !responseString.isNullOrEmpty()) {
-                val jsonObject = JSONObject(responseString)
-                val modelsArray = jsonObject.getJSONArray("data")
-                val modelsList = mutableListOf<String>()
-                for (i in 0 until modelsArray.length()) {
-                    modelsList.add(modelsArray.getJSONObject(i).getString("id"))
-                }
-
-                val list = modelsList.toTypedArray()
-                for (s in list) {
-                    Log.d("TAG", s)
-                }
-            }
-        }
-    }
-
     fun replyMessage(message: Message, position: Int) {
         val newMessage = Message(message.messageText, "You",true, 0, 1)
         //Message
