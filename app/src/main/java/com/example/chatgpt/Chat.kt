@@ -39,7 +39,7 @@ class Chat : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
-        getAvailableModels()
+        //getAvailableModels()
 
         // Инициализируем ViewModel
         chatViewModel = ViewModelProvider(this).get(ChatViewModel::class.java)
@@ -51,18 +51,23 @@ class Chat : AppCompatActivity() {
         messageEditText = findViewById(R.id.edit_text_chat_input)
         sendButton = findViewById(R.id.button_chat_send)
 
-        messageAdapter = MessageAdapter(this@Chat, messageList)
+        messageAdapter = MessageAdapter(this@Chat, messageList, this@Chat)
         messageRecyclerView.adapter = messageAdapter
         messageRecyclerView.layoutManager = LinearLayoutManager(this)
 
         sendButton.setOnClickListener {
             val message = messageEditText.text.toString().trim()
             if (message.isNotEmpty()) {
-                chatViewModel!!.messageList.add(Message(message, "You",true, 0))
+                //Message
+                chatViewModel!!.messageList.add(Message(message, "You",true, 0, 1))
+                //Preloader
+                val preloader = Message(message, "You",true, 0, 2)
+                chatViewModel!!.messageList.add(preloader)
+                val pos = chatViewModel!!.messageList.size - 1
                 messageAdapter.notifyDataSetChanged()
                 messageRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
                 messageEditText.setText("")
-                sendMessage(message)
+                sendMessage(message, preloader)
             }
         }
 
@@ -74,7 +79,7 @@ class Chat : AppCompatActivity() {
         return true
     }
 
-    private fun sendMessage(message: String) {
+    private fun sendMessage(message: String, mess: Message) {
         val client = OkHttpClient()
 
         val key = getTokenFromSharedPreferences(this@Chat)
@@ -90,7 +95,7 @@ class Chat : AppCompatActivity() {
                         {
                             "prompt": "$message",
                             "temperature": 0.5,
-                            "max_tokens": 150,
+                            "max_tokens": 1000,
                             "top_p": 1,
                             "frequency_penalty": 0,
                             "presence_penalty": 0
@@ -103,6 +108,9 @@ class Chat : AppCompatActivity() {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
+                    val pos = chatViewModel.messageList.indexOf(mess)
+                    chatViewModel.messageList.set(pos, Message(message, "You",true, 0, 0))
+                    messageAdapter.notifyDataSetChanged()
                     showToast("Failed to send message")
                 }
             }
@@ -133,9 +141,8 @@ class Chat : AppCompatActivity() {
                 }
 
                 runOnUiThread {
-//                    chatViewModel.messageList.add(Message(message, "You",true, 0))
-
-                    chatViewModel.messageList.add(Message(text, "Gpt", false, totalTokens))
+                    chatViewModel.messageList.remove(mess)
+                    chatViewModel.messageList.add(Message(text, "Gpt", false, totalTokens, 1))
                     messageAdapter.notifyDataSetChanged()
                     messageRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
                 }
@@ -211,6 +218,16 @@ class Chat : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    fun replyMessage(message: Message, position: Int) {
+        val newMessage = Message(message.messageText, "You",true, 0, 1)
+        //Message
+        chatViewModel!!.messageList.add(newMessage)
+        //Preloader
+        val preloader = Message(message.messageText, "You",true, 0, 2)
+        chatViewModel!!.messageList.add(preloader)
+        sendMessage(newMessage.messageText, preloader)
     }
 
 }

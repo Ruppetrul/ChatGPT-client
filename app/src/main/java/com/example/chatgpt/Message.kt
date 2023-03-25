@@ -5,5 +5,6 @@ data class Message(
    // val messageTime: String,
     val senderName: String,
     val isSentByMe: Boolean,
-    val tokens: Int
+    val tokens: Int,
+    val type: Int,
 )
