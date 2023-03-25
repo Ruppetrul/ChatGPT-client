@@ -59,22 +59,7 @@ class SplashActivity : AppCompatActivity() {
             // обработка нажатия кнопки
             val apiKey = getTokenFromSharedPreferences(this@SplashActivity)
             if (apiKey != null) {
-                getAvailableModels(apiKey,
-                    onSuccess = { modelNames ->
-                        preloader!!.visibility = View.INVISIBLE
-                        val intent = Intent(this, MainActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    },
-                    onFailure = { exception ->
-                        runOnUiThread {
-                            preloader!!.visibility = View.INVISIBLE
-                            button!!.visibility = View.VISIBLE
-                            Toast.makeText(this@SplashActivity, "Internet problems or Open AI is not available. :(", Toast.LENGTH_SHORT).show()
-                            println("Error: ${exception.message}")
-                        }
-                    }
-                )
+                process(apiKey)
             } else {
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
@@ -100,22 +85,7 @@ class SplashActivity : AppCompatActivity() {
 
         val apiKey = getTokenFromSharedPreferences(this@SplashActivity)
         if (apiKey != null) {
-            getAvailableModels(apiKey,
-                onSuccess = { modelNames ->
-                    preloader!!.visibility = View.INVISIBLE
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                },
-                onFailure = { exception ->
-                    runOnUiThread {
-                        preloader!!.visibility = View.INVISIBLE
-                        button!!.visibility = View.VISIBLE
-                        Toast.makeText(this@SplashActivity, "Internet problems or Open AI is not available. :(", Toast.LENGTH_SHORT).show()
-                        println("Error: ${exception.message}")
-                    }
-                }
-            )
+            process(apiKey)
         } else {
             // Создаем таймер на 2 секунды
             Handler().postDelayed({
@@ -125,6 +95,28 @@ class SplashActivity : AppCompatActivity() {
                 finish()
             }, 2000)
         }
+    }
+
+    private fun process(apiKey : String) {
+        getAvailableModels(apiKey,
+            onSuccess = { modelNames ->
+                preloader!!.visibility = View.INVISIBLE
+                val intent = Intent(this, Chat::class.java)
+
+                intent.putExtra("models", modelNames)
+
+                startActivity(intent)
+                finish()
+            },
+            onFailure = { exception ->
+                runOnUiThread {
+                    preloader!!.visibility = View.INVISIBLE
+                    button!!.visibility = View.VISIBLE
+                    Toast.makeText(this@SplashActivity, "Internet problems or Open AI is not available. :(", Toast.LENGTH_SHORT).show()
+                    println("Error: ${exception.message}")
+                }
+            }
+        )
     }
 
 

@@ -29,6 +29,7 @@
                 android:value="" />
         </activity>
         <activity android:name=".Chat"/>
+        <activity android:name=".SelectModel"/>
     </application>
 
 </manifest>

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -13,14 +14,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.json.JSONObject
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 
 
@@ -35,11 +31,36 @@ class Chat : AppCompatActivity() {
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var chatViewModel: ChatViewModel
 
+    private lateinit var models : Array<String>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
-        //getAvailableModels()
+        // Извлекаем массив из Intent
+        models = intent.extras?.getStringArray("models") as Array<String>
+
+        val current_model = getModelFromSharedPreferences(this)
+
+        if (current_model == null) {
+            val intent = Intent(this@Chat, SelectModel::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+
+            intent.putExtra("models", models)
+
+            startActivity(intent)
+            finish()
+        } else {
+            title = "Chat GPT ($current_model)"
+        }
+
+// Создаем адаптер для списка
+        if (models != null) {
+            if (models.isNotEmpty()) {
+                Log.d("MODELS", "models")
+
+            }
+        }
 
         // Инициализируем ViewModel
         chatViewModel = ViewModelProvider(this).get(ChatViewModel::class.java)
@@ -76,15 +97,19 @@ class Chat : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.chat_menu, menu)
+
         return true
     }
+
 
     private fun sendMessage(message: String, mess: Message) {
         val client = OkHttpClient()
 
         val key = getTokenFromSharedPreferences(this@Chat)
+
+        val model = getModelFromSharedPreferences(this@Chat)
         val request = Request.Builder()
-            .url("https://api.openai.com/v1/engines/text-davinci-003/completions")
+            .url("https://api.openai.com/v1/engines/$model/completions")
             .addHeader("Content-Type", "application/json")
 
             .addHeader("Authorization", "Bearer $key")
@@ -155,6 +180,11 @@ class Chat : AppCompatActivity() {
         return prefs.getString(Companion.TOKEN_KEY, null)
     }
 
+    fun getModelFromSharedPreferences(context: Context): String? {
+        val prefs = context.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
+        return prefs.getString("model", null)
+    }
+
     fun removeTokenFromSharedPreferences(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val editor = prefs.edit()
@@ -179,6 +209,17 @@ class Chat : AppCompatActivity() {
                 val intent = Intent(this@Chat, MainActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
+                true
+            }
+
+            R.id.action_model_select -> {
+                val intent = Intent(this@Chat, SelectModel::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+
+                intent.putExtra("models", models)
+
+                startActivity(intent)
+                finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)
